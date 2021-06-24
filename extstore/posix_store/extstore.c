@@ -86,6 +86,7 @@ int extstore_create(kvsns_ino_t object)
 int extstore_init(struct collection_item *cfg_items)
 {
 	struct collection_item *item;
+	struct stat store_root_stat;
 	int rc;
 
 	item = NULL;
@@ -99,6 +100,16 @@ int extstore_init(struct collection_item *cfg_items)
 
 	strncpy(store_root, get_string_config_value(item, NULL),
 		MAXPATHLEN);
+
+	if (stat(store_root, &store_root_stat)) {
+		fprintf(stderr, "Specified path '%s' does not exist\n",
+			store_root);
+		return -ENOENT;
+	} else if (!S_ISDIR(store_root_stat.st_mode)) {
+		fprintf(stderr, "Specified path '%s' is not a directory\n",
+			store_root);
+		return -ENOTDIR;
+	}
 
 	return 0;
 }
